@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Progress Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%);
+            min-height: 100vh;
+            padding: 24px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header p {
+            color: #e9d5ff;
+            margin-top: 8px;
+        }
+
+        .btn {
+            background: #9333ea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #7e22ce;
+        }
+
+        .metric-toggle {
+            display: flex;
+            gap: 16px;
+        }
+
+        .metric-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .metric-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .metric-btn.muscle {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .metric-btn.muscle:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .metric-btn.fat {
+            background: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .metric-btn.fat:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            color: #c084fc;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 4px 0;
+        }
+
+        .stat-sub {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #e9d5ff;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.3s;
+        }
+
+        .delete-btn:hover {
+            color: #dc2626;
+        }
+
+        .insight-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bar-label {
+            min-width: 120px;
+            font-weight: 600;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .bar-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            margin-bottom: 16px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="card">
+            <div class="header">
+                <div>
+                    <h1>💪 Gym Progress Analyzer</h1>
+                    <p>Discover which factors drive your fitness results</p>
+                </div>
+                <button class="btn" onclick="exportCSV()">
+                    📥 Export Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Metric Toggle -->
+        <div class="card">
+            <div class="metric-toggle">
+                <button class="metric-btn muscle active" onclick="setMetric('muscleGain')">
+                    💪 Muscle Gain Analysis
+                </button>
+                <button class="metric-btn fat" onclick="setMetric('fatLoss')">
+                    🔥 Fat Loss Analysis
+                </button>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-2">
+            <!-- Correlation Chart -->
+            <div class="card">
+                <h2>📈 Factor Correlations</h2>
+                <div id="correlationChart" class="bar-chart"></div>
+                <div class="stats-grid" id="correlationStats"></div>
+            </div>
+
+            <!-- Workout Type Chart -->
+            <div class="card">
+                <h2>🏋️ Workout Type Comparison</h2>
+                <div id="workoutChart" class="bar-chart"></div>
+            </div>
+        </div>
+
+        <!-- Add Entry Form -->
+        <div class="card">
+            <h2>➕ Add New Entry</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Hours/Week</label>
+                    <input type="number" id="hours" value="5" min="0" max="20" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label>Diet (1-10)</label>
+                    <input type="number" id="diet" value="7" min="1" max="10" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label>Sleep (hrs)</label>
+                    <input type="number" id="sleep" value="7" min="0" max="12" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="type">
+                        <option value="Strength">Strength</option>
+                        <option value="Cardio">Cardio</option>
+                        <option value="Mixed">Mixed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Muscle Gain (lbs)</label>
+                    <input type="number" id="muscleGain" value="2.5" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Fat Loss (lbs)</label>
+                    <input type="number" id="fatLoss" value="2.0" step="0.1">
+                </div>
+            </div>
+            <button class="btn" onclick="addEntry()">➕ Add Entry</button>
+        </div>
+
+        <!-- Data Table -->
+        <div class="card">
+            <h2>📊 Dataset (<span id="dataCount">0</span> entries)</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hours/Week</th>
+                            <th>Diet</th>
+                            <th>Sleep</th>
+                            <th>Type</th>
+                            <th>Muscle Gain</th>
+                            <th>Fat Loss</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Key Insights -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(219, 39, 119, 0.2) 100%);">
+            <h2>📈 Key Insights</h2>
+            <div class="grid grid-3">
+                <div class="insight-card">
+                    <div class="stat-label">Strongest Factor</div>
+                    <div class="stat-value" id="strongestFactor">-</div>
+                    <div class="stat-sub" id="strongestCorr">-</div>
+                </div>
+                <div class="insight-card">
+                    <div class="stat-label">Sample Size</div>
+                    <div class="stat-value" id="sampleSize">0</div>
+                    <div class="stat-sub">Total data points</div>
+                </div>
+                <div class="insight-card">
+                    <div class="stat-label">Best Workout</div>
+                    <div class="stat-value" id="bestWorkout">-</div>
+                    <div class="stat-sub" id="bestWorkoutSub">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial data
+        let dataPoints = [
+            { id: 1, hours: 5, diet: 7, sleep: 7, type: 'Strength', muscleGain: 2.5, fatLoss: 1.2 },
+            { id: 2, hours: 3, diet: 5, sleep: 6, type: 'Cardio', muscleGain: 0.8, fatLoss: 2.8 },
+            { id: 3, hours: 6, diet: 8, sleep: 8, type: 'Strength', muscleGain: 3.2, fatLoss: 1.8 },
+            { id: 4, hours: 4, diet: 6, sleep: 7, type: 'Mixed', muscleGain: 1.9, fatLoss: 2.1 },
+            { id: 5, hours: 7, diet: 9, sleep: 8, type: 'Strength', muscleGain: 4.1, fatLoss: 2.3 },
+            { id: 6, hours: 2, diet: 4, sleep: 5, type: 'Cardio', muscleGain: 0.3, fatLoss: 1.5 },
+            { id: 7, hours: 5, diet: 7, sleep: 6, type: 'Mixed', muscleGain: 2.2, fatLoss: 2.0 },
+            { id: 8, hours: 4, diet: 8, sleep: 9, type: 'Strength', muscleGain: 2.8, fatLoss: 1.4 },
+            { id: 9, hours: 6, diet: 6, sleep: 7, type: 'Cardio', muscleGain: 1.5, fatLoss: 3.2 },
+            { id: 10, hours: 5, diet: 9, sleep: 8, type: 'Mixed', muscleGain: 2.9, fatLoss: 2.4 }
+        ];
+
+        let activeMetric = 'muscleGain';
+
+        function calculateCorrelation(x, y) {
+            const n = x.length;
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+            const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+            const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+            
+            const numerator = n * sumXY - sumX * sumY;
+            const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+            
+            return denominator === 0 ? 0 : numerator / denominator;
+        }
+
+        function getCorrelationColor(corr) {
+            const abs = Math.abs(corr);
+            if (abs > 0.7) return '#10b981';
+            if (abs > 0.4) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        function updateCharts() {
+            // Calculate correlations
+            const yValues = dataPoints.map(d => d[activeMetric]);
+            const correlations = [
+                { factor: 'Hours/Week', correlation: calculateCorrelation(dataPoints.map(d => d.hours), yValues), impact: 'Volume' },
+                { factor: 'Diet Quality', correlation: calculateCorrelation(dataPoints.map(d => d.diet), yValues), impact: 'Nutrition' },
+                { factor: 'Sleep Hours', correlation: calculateCorrelation(dataPoints.map(d => d.sleep), yValues), impact: 'Recovery' }
+            ].sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
+
+            // Update correlation chart
+            const corrChart = document.getElementById('correlationChart');
+            corrChart.innerHTML = correlations.map(c => {
+                const percent = (c.correlation * 100).toFixed(0);
+                const absPercent = Math.abs(percent);
+                const color = getCorrelationColor(c.correlation);
+                return `
+                    <div class="bar-item">
+                        <div class="bar-label">${c.factor}</div>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: ${absPercent}%; background: ${color};">
+                                ${percent}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update correlation stats
+            const corrStats = document.getElementById('correlationStats');
+            corrStats.innerHTML = correlations.map(c => `
+                <div class="stat-card">
+                    <div class="stat-label">${c.factor}</div>
+                    <div class="stat-value">${(c.correlation * 100).toFixed(0)}%</div>
+                    <div class="stat-sub">${c.impact}</div>
+                </div>
+            `).join('');
+
+            // Calculate workout type averages
+            const types = ['Strength', 'Cardio', 'Mixed'];
+            const workoutData = types.map(type => {
+                const filtered = dataPoints.filter(d => d.type === type);
+                if (filtered.length === 0) return { type, avgMuscle: 0, avgFat: 0 };
+                return {
+                    type,
+                    avgMuscle: filtered.reduce((sum, d) => sum + d.muscleGain, 0) / filtered.length,
+                    avgFat: filtered.reduce((sum, d) => sum + d.fatLoss, 0) / filtered.length
+                };
+            });
+
+            // Update workout chart
+            const workoutChart = document.getElementById('workoutChart');
+            const maxVal = Math.max(...workoutData.flatMap(w => [w.avgMuscle, w.avgFat]));
+            workoutChart.innerHTML = workoutData.map(w => `
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 8px;">${w.type}</div>
+                    <div class="bar-item" style="margin-bottom: 4px;">
+                        <div class="bar-label" style="min-width: 100px; font-size: 14px;">Muscle</div>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: ${(w.avgMuscle / maxVal * 100).toFixed(0)}%; background: #10b981;">
+                                ${w.avgMuscle.toFixed(1)} lbs
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label" style="min-width: 100px; font-size: 14px;">Fat Loss</div>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: ${(w.avgFat / maxVal * 100).toFixed(0)}%; background: #f59e0b;">
+                                ${w.avgFat.toFixed(1)} lbs
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update insights
+            document.getElementById('strongestFactor').textContent = correlations[0].factor;
+            document.getElementById('strongestCorr').textContent = `${(Math.abs(correlations[0].correlation) * 100).toFixed(0)}% correlation`;
+            document.getElementById('sampleSize').textContent = dataPoints.length;
+            
+            const bestWorkout = workoutData.reduce((best, curr) => 
+                curr[activeMetric === 'muscleGain' ? 'avgMuscle' : 'avgFat'] > 
+                best[activeMetric === 'muscleGain' ? 'avgMuscle' : 'avgFat'] ? curr : best
+            );
+            document.getElementById('bestWorkout').textContent = bestWorkout.type;
+            document.getElementById('bestWorkoutSub').textContent = `For ${activeMetric === 'muscleGain' ? 'muscle gain' : 'fat loss'}`;
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('dataTable');
+            tbody.innerHTML = dataPoints.map(d => `
+                <tr>
+                    <td>${d.hours}</td>
+                    <td>${d.diet}</td>
+                    <td>${d.sleep}</td>
+                    <td>${d.type}</td>
+                    <td>${d.muscleGain} lbs</td>
+                    <td>${d.fatLoss} lbs</td>
+                    <td><button class="delete-btn" onclick="deleteEntry(${d.id})">🗑️</button></td>
+                </tr>
+            `).join('');
+            document.getElementById('dataCount').textContent = dataPoints.length;
+        }
+
+        function setMetric(metric) {
+            activeMetric = metric;
+            document.querySelectorAll('.metric-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateCharts();
+        }
+
+        function addEntry() {
+            const newEntry = {
+                id: Date.now(),
+                hours: parseFloat(document.getElementById('hours').value) || 0,
+                diet: parseFloat(document.getElementById('diet').value) || 0,
+                sleep: parseFloat(document.getElementById('sleep').value) || 0,
+                type: document.getElementById('type').value,
+                muscleGain: parseFloat(document.getElementById('muscleGain').value) || 0,
+                fatLoss: parseFloat(document.getElementById('fatLoss').value) || 0
+            };
+            dataPoints.push(newEntry);
+            updateTable();
+            updateCharts();
+        }
+
+        function deleteEntry(id) {
+            dataPoints = dataPoints.filter(d => d.id !== id);
+            updateTable();
+            updateCharts();
+        }
+
+        function exportCSV() {
+            const headers = ['Hours/Week', 'Diet Quality', 'Sleep Hours', 'Workout Type', 'Muscle Gain (lbs)', 'Fat Loss (lbs)'];
+            const csv = [
+                headers.join(','),
+                ...dataPoints.map(d => `${d.hours},${d.diet},${d.sleep},${d.type},${d.muscleGain},${d.fatLoss}`)
+            ].join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'gym_progress_data.csv';
+            a.click();
+        }
+
+        // Initialize
+        updateTable();
+        updateCharts();
+    </script>
+</body>
+</html>
